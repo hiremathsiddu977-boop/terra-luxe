@@ -60,7 +60,7 @@ export function DestinationsExplorer({
   return (
     <section
       id="destinations"
-      className="py-16 lg:py-24 bg-[#09152e] border-b border-sky-300/15"
+      className="cv-auto py-16 lg:py-24 bg-[#09152e] border-b border-sky-300/15"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -148,7 +148,7 @@ export function DestinationsExplorer({
                       src={hub.imageUrl}
                       alt={hub.imageAlt}
                       fallbackTitle={`${hub.city}, ${hub.country}`}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+                      className="w-full h-full object-cover"
                     />
                   </div>
 
@@ -227,7 +227,7 @@ export function DestinationsExplorer({
           role="dialog"
           aria-modal="true"
           aria-labelledby="hub-dossier-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/85"
           onClick={() => setInspectedHub(null)}
         >
           <div

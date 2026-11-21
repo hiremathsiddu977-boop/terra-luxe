@@ -6,6 +6,7 @@ import {
   PROGRAM_MULTIPLIERS,
   ProgramType,
 } from '../data/businessTourismData';
+import { formatUsd } from '../utils/formatters';
 
 interface ProposalFormProps {
   selectedHubId: string;
@@ -116,15 +117,8 @@ export function ProposalForm({
     onClearEstimate();
   };
 
-  const formatUsd = (amount: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount);
-
   return (
-    <section id="proposal" className="py-16 lg:py-24 bg-[#071124]">
+    <section id="proposal" className="cv-auto py-16 lg:py-24 bg-[#071124]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-5">

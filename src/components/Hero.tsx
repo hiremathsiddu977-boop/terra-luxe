@@ -15,6 +15,7 @@ export function Hero({ onBookDestination }: HeroProps) {
           alt={HERO_MEDIA.imageAlt}
           fallbackTitle="Cantilevered Alpine Fjord Executive Pavilion"
           darkFallback
+          priority
           className="w-full h-full object-cover object-center"
         />
         <div
@@ -53,7 +54,7 @@ export function Hero({ onBookDestination }: HeroProps) {
             <button
               type="button"
               onClick={onBookDestination}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 min-h-[44px] text-sm font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071124] focus-visible:ring-amber-400"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 min-h-[44px] text-sm font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg whitespace-nowrap shrink-0 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071124] focus-visible:ring-amber-400"
             >
               <span>Make a Reservation</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -61,14 +62,14 @@ export function Hero({ onBookDestination }: HeroProps) {
 
             <a
               href="#customer-portal"
-              className="inline-flex items-center min-h-[44px] text-sm font-medium text-sky-100 hover:text-amber-300 underline underline-offset-4 transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-sm"
+              className="inline-flex items-center min-h-[44px] text-sm font-medium text-sky-100 hover:text-amber-300 underline underline-offset-4 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-sm"
             >
               Manage or Cancel Bookings
             </a>
           </div>
         </div>
 
-        <div className="mt-14 lg:mt-16 grid grid-cols-2 lg:grid-cols-4 gap-8 bg-[#091630]/80 backdrop-blur-md rounded-xl p-6 sm:p-8 border border-sky-300/20">
+        <div className="mt-14 lg:mt-16 grid grid-cols-2 lg:grid-cols-4 gap-8 bg-[#091630]/92 rounded-xl p-6 sm:p-8 border border-sky-300/20">
           {HERO_METRICS.map((metric) => (
             <div key={metric.label}>
               <div className="font-mono text-2xl sm:text-3xl font-semibold text-amber-300 tabular-nums tracking-tight">

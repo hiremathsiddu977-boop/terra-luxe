@@ -8,6 +8,7 @@ import {
   ProgramType,
   TIER_MULTIPLIERS,
 } from '../data/businessTourismData';
+import { formatUsd } from '../utils/formatters';
 
 interface ProgramEstimatorProps {
   selectedHubId: string;
@@ -69,17 +70,10 @@ export function ProgramEstimator({
     };
   }, [activeHub, programType, tier, clampedDelegates, days]);
 
-  const formatUsd = (amount: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount);
-
   return (
     <section
       id="estimator"
-      className="py-16 lg:py-24 bg-[#09152e] border-b border-sky-300/15"
+      className="cv-auto py-16 lg:py-24 bg-[#09152e] border-b border-sky-300/15"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">

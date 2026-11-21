@@ -4,7 +4,7 @@ export function CapabilitiesBento() {
   return (
     <section
       id="capabilities"
-      className="py-16 lg:py-24 bg-[#071124] border-b border-sky-300/15"
+      className="cv-auto py-16 lg:py-24 bg-[#071124] border-b border-sky-300/15"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">

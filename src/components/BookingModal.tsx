@@ -9,6 +9,7 @@ import {
   ProgramType,
   TIER_MULTIPLIERS,
 } from '../data/businessTourismData';
+import { formatUsd } from '../utils/formatters';
 
 export interface BookingDraft {
   hubId: string;
@@ -31,6 +32,7 @@ const TIERS: HospitalityTier[] = ['Executive', 'Boardroom Luxury'];
 
 function addDaysIso(startIso: string, daysToAdd: number): string {
   const d = new Date(startIso + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return '2027-05-21';
   d.setDate(d.getDate() + daysToAdd);
   return d.toISOString().slice(0, 10);
 }
@@ -91,15 +93,18 @@ export function BookingModal({
   );
 
   const nights = useMemo(() => {
+    if (!checkInDate || !checkOutDate) return 0;
     const start = new Date(checkInDate + 'T00:00:00');
     const end = new Date(checkOutDate + 'T00:00:00');
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
     const diff = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 0;
+    return Number.isFinite(diff) && diff > 0 ? diff : 0;
   }, [checkInDate, checkOutDate]);
 
   const pricing = useMemo(() => {
     const effectiveNights = Math.max(1, nights);
-    const effectiveGuests = Math.max(1, Math.min(guests, activeHub.maxDelegates));
+    const safeGuests = Number.isFinite(guests) ? guests : 1;
+    const effectiveGuests = Math.max(1, Math.min(safeGuests, activeHub.maxDelegates));
     const perGuestNight =
       activeHub.baseDailyRateUsd *
       PROGRAM_MULTIPLIERS[programType].factor *
@@ -118,13 +123,6 @@ export function BookingModal({
   }, [activeHub, nights, guests, programType, tier]);
 
   if (!isOpen) return null;
-
-  const formatUsd = (amount: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -177,7 +175,7 @@ export function BookingModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="booking-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/85"
       onClick={onClose}
     >
       <div

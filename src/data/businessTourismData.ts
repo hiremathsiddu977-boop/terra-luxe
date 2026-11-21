@@ -753,6 +753,14 @@ export function calculateCancellationPolicy(
   const diffMs = checkIn.getTime() - now.getTime();
   const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
+  if (!Number.isFinite(daysUntil)) {
+    return {
+      refundPercent: 0,
+      refundUsd: 0,
+      policyLabel: 'Standard corporate review applies',
+    };
+  }
+
   if (daysUntil >= 14) {
     return {
       refundPercent: 100,

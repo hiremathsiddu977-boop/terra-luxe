@@ -20,6 +20,7 @@ import {
   EmploymentType,
   MONTHLY_BASELINES,
 } from '../data/businessTourismData';
+import { formatHourly, formatUsd } from '../utils/formatters';
 
 interface OwnerPortalPageProps {
   isAuthenticated: boolean;
@@ -81,21 +82,6 @@ export function OwnerPortalPage({
   const [empHourlyRate, setEmpHourlyRate] = useState(65);
   const [empWeeklyHours, setEmpWeeklyHours] = useState(40);
   const [empError, setEmpError] = useState<string | null>(null);
-
-  const formatUsd = (amount: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount);
-
-  const formatHourly = (amount: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
 
   // Live employee & payroll math
   const payrollMetrics = useMemo(() => {
@@ -255,11 +241,14 @@ export function OwnerPortalPage({
       setEmpError('Employee name and role title are required.');
       return;
     }
-    if (empHourlyRate <= 0 || empHourlyRate > 500) {
+    const rate = Number.isFinite(empHourlyRate) ? empHourlyRate : 0;
+    const hours = Number.isFinite(empWeeklyHours) ? empWeeklyHours : 0;
+
+    if (rate <= 0 || rate > 500) {
       setEmpError('Hourly salary must be between $1 and $500.');
       return;
     }
-    if (empWeeklyHours < 1 || empWeeklyHours > 80) {
+    if (hours < 1 || hours > 80) {
       setEmpError('Weekly hours must be between 1 and 80.');
       return;
     }
@@ -272,8 +261,8 @@ export function OwnerPortalPage({
       department: empDept,
       hubCity: empHub,
       employmentType: empType,
-      hourlyRateUsd: Number(empHourlyRate),
-      weeklyHours: Number(empWeeklyHours),
+      hourlyRateUsd: rate,
+      weeklyHours: hours,
       joinedDate: new Date().toISOString().slice(0, 10),
     });
 
@@ -840,7 +829,7 @@ export function OwnerPortalPage({
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-emp-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/85"
           onClick={() => setAddModalOpen(false)}
         >
           <div
@@ -987,7 +976,14 @@ export function OwnerPortalPage({
               <div className="p-4 bg-[#09152e] border border-sky-300/20 rounded-lg flex items-center justify-between text-xs">
                 <span className="text-sky-200/80">Projected Monthly Payroll Cost</span>
                 <span className="font-mono text-base font-semibold text-amber-300 tabular-nums">
-                  {formatUsd(Math.round(empHourlyRate * empWeeklyHours * WEEKS_PER_MONTH))}/mo
+                  {formatUsd(
+                    Math.round(
+                      (Number.isFinite(empHourlyRate) ? Math.max(0, empHourlyRate) : 0) *
+                        (Number.isFinite(empWeeklyHours) ? Math.max(0, empWeeklyHours) : 0) *
+                        WEEKS_PER_MONTH
+                    )
+                  )}
+                  /mo
                 </span>
               </div>
 
@@ -1017,7 +1013,7 @@ export function OwnerPortalPage({
           role="dialog"
           aria-modal="true"
           aria-labelledby="del-emp-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/85"
           onClick={() => setEmployeeToDelete(null)}
         >
           <div

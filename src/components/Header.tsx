@@ -32,7 +32,7 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#071124]/92 backdrop-blur-md border-b border-sky-300/15">
+    <header className="sticky top-0 z-40 bg-[#071124] border-b border-sky-300/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
         <a
           href="#"

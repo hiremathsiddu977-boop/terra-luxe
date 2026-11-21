@@ -15,6 +15,7 @@ import {
   CustomerProfile,
   DESTINATION_HUBS,
 } from '../data/businessTourismData';
+import { formatUsd } from '../utils/formatters';
 
 interface CustomerPortalProps {
   customer: CustomerProfile;
@@ -87,13 +88,6 @@ export function CustomerPortal({
     });
   }, [bookings, statusFilter, searchQuery]);
 
-  const formatUsd = (amount: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount);
-
   const handleSaveProfile = (e: FormEvent) => {
     e.preventDefault();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draftEmail.trim());
@@ -142,7 +136,7 @@ export function CustomerPortal({
   return (
     <section
       id="customer-portal"
-      className="py-16 lg:py-24 bg-[#071124] border-b border-sky-300/15"
+      className="cv-auto py-16 lg:py-24 bg-[#071124] border-b border-sky-300/15"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -428,7 +422,7 @@ export function CustomerPortal({
           role="dialog"
           aria-modal="true"
           aria-labelledby="receipt-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/85"
           onClick={() => setInspectedBooking(null)}
         >
           <div
@@ -555,7 +549,7 @@ export function CustomerPortal({
           role="dialog"
           aria-modal="true"
           aria-labelledby="cancel-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#030916]/85"
           onClick={() => setBookingToCancel(null)}
         >
           <div

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { BookingDraft, BookingModal } from './components/BookingModal';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import type { BookingDraft } from './components/BookingModal';
 import { CapabilitiesBento } from './components/CapabilitiesBento';
 import { CaseStudies } from './components/CaseStudies';
 import { CustomerPortal } from './components/CustomerPortal';
@@ -7,7 +7,6 @@ import { DestinationsExplorer } from './components/DestinationsExplorer';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { OwnerPortalPage } from './components/OwnerPortalPage';
 import { ProgramEstimator } from './components/ProgramEstimator';
 import { ProposalForm } from './components/ProposalForm';
 import {
@@ -20,6 +19,16 @@ import {
   INITIAL_CUSTOMER_BOOKINGS,
   INITIAL_EMPLOYEES,
 } from './data/businessTourismData';
+
+const loadOwnerPortal = () => import('./components/OwnerPortalPage');
+const loadBookingModal = () => import('./components/BookingModal');
+
+const OwnerPortalPage = lazy(() =>
+  loadOwnerPortal().then((m) => ({ default: m.OwnerPortalPage }))
+);
+const BookingModal = lazy(() =>
+  loadBookingModal().then((m) => ({ default: m.BookingModal }))
+);
 
 const BOOKINGS_STORAGE_KEY = 'meridian_portal_bookings_v1';
 const PROFILE_STORAGE_KEY = 'meridian_portal_customer_v1';
@@ -43,7 +52,24 @@ export default function App() {
   const [customer, setCustomer] = useState<CustomerProfile>(() => {
     try {
       const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
-      return saved ? (JSON.parse(saved) as CustomerProfile) : DEFAULT_CUSTOMER_PROFILE;
+      if (!saved) return DEFAULT_CUSTOMER_PROFILE;
+      const parsed = JSON.parse(saved) as Partial<CustomerProfile> | null;
+      if (
+        parsed &&
+        typeof parsed === 'object' &&
+        typeof parsed.name === 'string' &&
+        typeof parsed.email === 'string'
+      ) {
+        return {
+          name: parsed.name,
+          email: parsed.email,
+          company:
+            typeof parsed.company === 'string'
+              ? parsed.company
+              : DEFAULT_CUSTOMER_PROFILE.company,
+        };
+      }
+      return DEFAULT_CUSTOMER_PROFILE;
     } catch {
       return DEFAULT_CUSTOMER_PROFILE;
     }
@@ -52,7 +78,11 @@ export default function App() {
   const [bookings, setBookings] = useState<CustomerBooking[]>(() => {
     try {
       const saved = localStorage.getItem(BOOKINGS_STORAGE_KEY);
-      return saved ? (JSON.parse(saved) as CustomerBooking[]) : INITIAL_CUSTOMER_BOOKINGS;
+      if (!saved) return INITIAL_CUSTOMER_BOOKINGS;
+      const parsed = JSON.parse(saved) as unknown;
+      return Array.isArray(parsed)
+        ? (parsed as CustomerBooking[])
+        : INITIAL_CUSTOMER_BOOKINGS;
     } catch {
       return INITIAL_CUSTOMER_BOOKINGS;
     }
@@ -61,7 +91,9 @@ export default function App() {
   const [employees, setEmployees] = useState<EmployeeRecord[]>(() => {
     try {
       const saved = localStorage.getItem(EMPLOYEES_STORAGE_KEY);
-      return saved ? (JSON.parse(saved) as EmployeeRecord[]) : INITIAL_EMPLOYEES;
+      if (!saved) return INITIAL_EMPLOYEES;
+      const parsed = JSON.parse(saved) as unknown;
+      return Array.isArray(parsed) ? (parsed as EmployeeRecord[]) : INITIAL_EMPLOYEES;
     } catch {
       return INITIAL_EMPLOYEES;
     }
@@ -102,86 +134,113 @@ export default function App() {
     }
   }, [ownerAuthenticated]);
 
-  const scrollToSection = (sectionId: string) => {
+  // Warm lazy chunks after initial paint so switching views is instantaneous
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      void loadBookingModal();
+      void loadOwnerPortal();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  const scrollToSection = useCallback((sectionId: string) => {
     if (sectionId === 'top') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
       return;
     }
     const target = document.getElementById(sectionId);
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.scrollIntoView({ behavior: 'auto', block: 'start' });
     }
-  };
+  }, []);
 
-  const handleNavigateSection = (sectionId: string) => {
-    if (activeView !== 'portal') {
-      setActiveView('portal');
-      window.setTimeout(() => scrollToSection(sectionId), 50);
-      return;
-    }
-    scrollToSection(sectionId);
-  };
+  const handleNavigateSection = useCallback(
+    (sectionId: string) => {
+      if (activeView !== 'portal') {
+        setActiveView('portal');
+        window.requestAnimationFrame(() => scrollToSection(sectionId));
+        return;
+      }
+      scrollToSection(sectionId);
+    },
+    [activeView, scrollToSection]
+  );
 
-  const handleOpenOwnerPage = () => {
+  const handleOpenOwnerPage = useCallback(() => {
     setActiveView('owner');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+    window.scrollTo(0, 0);
+  }, []);
 
-  const handleOpenBookingModal = (draft?: BookingDraft) => {
-    setBookingDraft(draft || { hubId: selectedHubId });
-    setBookingModalOpen(true);
-  };
+  const handleOpenBookingModal = useCallback(
+    (draft?: BookingDraft) => {
+      setBookingDraft(draft || { hubId: selectedHubId });
+      setBookingModalOpen(true);
+    },
+    [selectedHubId]
+  );
 
-  const handleSelectHubForProposal = (hubId: string) => {
-    setSelectedHubId(hubId);
-    handleNavigateSection('proposal');
-  };
+  const handleSelectHubForProposal = useCallback(
+    (hubId: string) => {
+      setSelectedHubId(hubId);
+      handleNavigateSection('proposal');
+    },
+    [handleNavigateSection]
+  );
 
-  const handleTransferEstimate = (payload: EstimateTransferPayload) => {
-    setSelectedHubId(payload.hubId);
-    setTransferredEstimate(payload);
-    handleNavigateSection('proposal');
-  };
+  const handleTransferEstimate = useCallback(
+    (payload: EstimateTransferPayload) => {
+      setSelectedHubId(payload.hubId);
+      setTransferredEstimate(payload);
+      handleNavigateSection('proposal');
+    },
+    [handleNavigateSection]
+  );
 
-  const handleBookEstimate = (payload: EstimateTransferPayload) => {
-    setSelectedHubId(payload.hubId);
-    handleOpenBookingModal({
-      hubId: payload.hubId,
-      programType: payload.programType,
-      guests: payload.delegates,
-      days: payload.days,
-      tier: payload.tier,
-    });
-  };
+  const handleBookEstimate = useCallback(
+    (payload: EstimateTransferPayload) => {
+      setSelectedHubId(payload.hubId);
+      handleOpenBookingModal({
+        hubId: payload.hubId,
+        programType: payload.programType,
+        guests: payload.delegates,
+        days: payload.days,
+        tier: payload.tier,
+      });
+    },
+    [handleOpenBookingModal]
+  );
 
-  const handleCreateBooking = (newBooking: CustomerBooking) => {
+  const handleCreateBooking = useCallback((newBooking: CustomerBooking) => {
     setBookings((prev) => [newBooking, ...prev]);
-  };
+  }, []);
 
-  const handleCancelBooking = (bookingId: string, reason: string, refundUsd: number) => {
-    const cancelledAt = new Date().toISOString().slice(0, 10);
-    setBookings((prev) =>
-      prev.map((item) =>
-        item.id === bookingId
-          ? {
-              ...item,
-              status: 'Cancelled',
-              cancelledAt,
-              cancellationReason: reason,
-              refundAmountUsd: refundUsd,
-            }
-          : item
-      )
-    );
-  };
+  const handleCancelBooking = useCallback(
+    (bookingId: string, reason: string, refundUsd: number) => {
+      const cancelledAt = new Date().toISOString().slice(0, 10);
+      setBookings((prev) =>
+        prev.map((item) =>
+          item.id === bookingId
+            ? {
+                ...item,
+                status: 'Cancelled',
+                cancelledAt,
+                cancellationReason: reason,
+                refundAmountUsd: refundUsd,
+              }
+            : item
+        )
+      );
+    },
+    []
+  );
 
-  const handleAddEmployee = (newEmployee: EmployeeRecord) => {
+  const handleAddEmployee = useCallback((newEmployee: EmployeeRecord) => {
     setEmployees((prev) => [newEmployee, ...prev]);
-  };
+  }, []);
 
-  const handleDeleteEmployee = (employeeId: string) => {
+  const handleDeleteEmployee = useCallback((employeeId: string) => {
     setEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
-  };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#071124] text-slate-50">
@@ -194,16 +253,18 @@ export default function App() {
 
       <main className="flex-1">
         {activeView === 'owner' ? (
-          <OwnerPortalPage
-            isAuthenticated={ownerAuthenticated}
-            onLoginSuccess={() => setOwnerAuthenticated(true)}
-            onLogout={() => setOwnerAuthenticated(false)}
-            onReturnToPortal={() => handleNavigateSection('top')}
-            bookings={bookings}
-            employees={employees}
-            onAddEmployee={handleAddEmployee}
-            onDeleteEmployee={handleDeleteEmployee}
-          />
+          <Suspense fallback={null}>
+            <OwnerPortalPage
+              isAuthenticated={ownerAuthenticated}
+              onLoginSuccess={() => setOwnerAuthenticated(true)}
+              onLogout={() => setOwnerAuthenticated(false)}
+              onReturnToPortal={() => handleNavigateSection('top')}
+              bookings={bookings}
+              employees={employees}
+              onAddEmployee={handleAddEmployee}
+              onDeleteEmployee={handleDeleteEmployee}
+            />
+          </Suspense>
         ) : (
           <>
             <Hero onBookDestination={() => handleOpenBookingModal()} />
@@ -244,13 +305,17 @@ export default function App() {
         onNavigateSection={handleNavigateSection}
       />
 
-      <BookingModal
-        isOpen={bookingModalOpen}
-        onClose={() => setBookingModalOpen(false)}
-        draft={bookingDraft}
-        customer={customer}
-        onCreateBooking={handleCreateBooking}
-      />
+      {bookingModalOpen && (
+        <Suspense fallback={null}>
+          <BookingModal
+            isOpen={bookingModalOpen}
+            onClose={() => setBookingModalOpen(false)}
+            draft={bookingDraft}
+            customer={customer}
+            onCreateBooking={handleCreateBooking}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
