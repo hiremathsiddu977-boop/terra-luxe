@@ -1,0 +1,6 @@
+{
+  "name": "Meridian Corporate",
+  "description": "Global business tourism, MICE summits, and executive retreat logistics across 24 international hubs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
